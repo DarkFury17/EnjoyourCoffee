@@ -4,7 +4,6 @@ const qs = (id) => document.getElementById(id);
 const euro = (cents) =>
   new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format((cents || 0) / 100);
 
-// ---- Login ----
 const loginForm = qs("loginForm");
 const loginEmail = qs("loginEmail");
 const loginPassword = qs("loginPassword");
@@ -27,15 +26,11 @@ const editCategory = qs("editCategory");
 const loginSection = qs("loginSection");
 const salesSection = qs("salesSection");
 
-// Imposta stato iniziale
 if (productsSection) productsSection.hidden = true;
 if (salesSection) salesSection.hidden = true;
 
 let CATEGORIES = [];
 
-// ============================
-// DEBUG HELPER
-// ============================
 function debugLog(msg, data) {
   console.log(`[ADMIN DEBUG] ${msg}`, data || '');
 }
@@ -53,7 +48,6 @@ async function openEdit(p) {
   editActive.checked = Boolean(p.is_active);
   editImage.value = "";
 
-  // Campi variante formato
   const editPrice1Label = qs("editPrice1Label");
   const editPrice2 = qs("editPrice2");
   const editPrice2Label = qs("editPrice2Label");
@@ -61,7 +55,6 @@ async function openEdit(p) {
   if (editPrice2) editPrice2.value = p.price_2 || "";
   if (editPrice2Label) editPrice2Label.value = p.price_2_label || "";
 
-  // Auto-apri la sezione variante se ha valori
   const editVariantDetails = editDialog?.querySelector('.variant-details');
   if (editVariantDetails) {
     editVariantDetails.open = Boolean(p.price_2);
@@ -89,7 +82,6 @@ editForm?.addEventListener("submit", async (e) => {
     fd.append("is_active", String(editActive.checked));
     fd.set("category_id", editCategory.value);
 
-    // Campi variante formato
     fd.append("price_1_label", qs("editPrice1Label")?.value?.trim() || "");
     fd.append("price_2", qs("editPrice2")?.value || "");
     fd.append("price_2_label", qs("editPrice2Label")?.value?.trim() || "");
@@ -127,8 +119,6 @@ editForm?.addEventListener("submit", async (e) => {
     console.error(err);
   }
 });
-
-// Email modificabile
 
 function showLoginError(msg) {
   if (loginError) {
@@ -168,13 +158,11 @@ loginForm?.addEventListener("submit", async (e) => {
 
     debugLog('Login riuscito, caricamento dati...');
 
-    // Carica dati
     await loadCategoriesForSelect();
     await loadProducts();
     await loadOrders();
     await loadCustomers();
 
-    // Mostra sezioni
     if (productsSection) productsSection.hidden = false;
     if (salesSection) salesSection.hidden = false;
     if (loginSection) loginSection.hidden = true;
@@ -212,7 +200,6 @@ logoutBtn?.addEventListener("click", async () => {
   }
 });
 
-// ---- Create product ----
 const createForm = qs("createProductForm");
 const createError = qs("createError");
 const createOk = qs("createOk");
@@ -265,7 +252,6 @@ createForm?.addEventListener("submit", async (e) => {
     fd.append("is_active", String(pActive.checked));
     fd.append("category_id", productCategory.value);
 
-    // Campi variante formato
     fd.append("price_1_label", qs("pPrice1Label")?.value?.trim() || "");
     fd.append("price_2", qs("pPrice2")?.value || "");
     fd.append("price_2_label", qs("pPrice2Label")?.value?.trim() || "");
@@ -280,19 +266,13 @@ createForm?.addEventListener("submit", async (e) => {
       fd.append("image", file);
     }
 
-    debugLog('Creazione prodotto', pName.value);
-
     const res = await fetch(`${API_BASE}/api/admin/products`, {
       method: "POST",
       credentials: "include",
       body: fd,
     });
 
-    debugLog('Risposta creazione', { status: res.status });
-
-    if (res.status === 401) {
-      throw new Error("Non hai eseguito il login.");
-    }
+    if (res.status === 401) throw new Error("Non hai eseguito il login.");
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data?.detail || data?.error || `HTTP ${res.status}`);
@@ -308,18 +288,16 @@ createForm?.addEventListener("submit", async (e) => {
   }
 });
 
-// ---- Products list ----
 const reloadBtn = qs("reloadBtn");
 const listInfo = qs("listInfo");
 const tbody = qs("productsTbody");
 const filterCategory = qs("filterCategory");
 const filterSearch = qs("filterSearch");
 
-let allProducts = []; // Store all products for filtering
+let allProducts = [];
 
 reloadBtn?.addEventListener("click", loadProducts);
 
-// Filter handlers
 filterCategory?.addEventListener("change", applyProductFilters);
 filterSearch?.addEventListener("input", applyProductFilters);
 
@@ -353,7 +331,6 @@ function renderProductRows(data) {
     tdName.style.padding = "10px";
     tdName.textContent = p.name;
 
-    // Mostra anche la categoria
     const catName = CATEGORIES.find(c => String(c.id) === String(p.category_id))?.name;
     if (catName) {
       const catSpan = document.createElement("span");
@@ -479,13 +456,9 @@ async function loadProducts() {
 
     if (productsSection) productsSection.hidden = false;
     
-    // Salva tutti i prodotti per il filtraggio
     allProducts = data;
 
-    // Popola il dropdown del filtro per categoria
     populateFilterCategories();
-
-    // Applica i filtri correnti (o mostra tutti)
     applyProductFilters();
 
   } catch (err) {
@@ -505,17 +478,14 @@ function populateFilterCategories() {
   allOpt.textContent = "Tutte le categorie";
   filterCategory.appendChild(allOpt);
 
-  // Helper: trova i figli diretti di una categoria
   function getChildren(parentId) {
     return CATEGORIES.filter(c => Number(c.parent_id) === Number(parentId));
   }
 
-  // Helper: verifica se una categoria ha figli
   function hasChildren(catId) {
     return CATEGORIES.some(c => Number(c.parent_id) === Number(catId));
   }
 
-  // Helper: conta prodotti ricorsivamente (categoria + tutti i discendenti)
   function countProductsRecursive(catId) {
     let count = allProducts.filter(p => String(p.category_id) === String(catId)).length;
     getChildren(catId).forEach(child => {
@@ -526,7 +496,6 @@ function populateFilterCategories() {
 
   const insertedIds = new Set();
 
-  // Funzione ricorsiva per aggiungere le opzioni con indentazione ad albero
   function addFilterTreeOptions(parentId, indentPrefix) {
     const children = getChildren(parentId);
     children.forEach((child, index) => {
@@ -559,7 +528,6 @@ function populateFilterCategories() {
     });
   }
 
-  // Categorie root
   const roots = CATEGORIES.filter(c => !c.parent_id);
 
   roots.forEach(root => {
@@ -573,7 +541,6 @@ function populateFilterCategories() {
     addFilterTreeOptions(root.id, "", false);
   });
 
-  // Orfani
   const orphans = CATEGORIES.filter(c => !insertedIds.has(Number(c.id)));
   orphans.forEach(o => {
     const opt = document.createElement("option");
@@ -586,7 +553,6 @@ function populateFilterCategories() {
   if (currentVal) filterCategory.value = currentVal;
 }
 
-// ---- ORDERS ----
 const adminNotice = qs("adminNotice");
 const ordersGrid = qs("ordersGrid");
 const orderDetail = qs("orderDetail");
@@ -838,7 +804,6 @@ async function loadCustomers() {
   }
 }
 
-// ---- CATEGORIES ----
 async function loadCategoriesForSelect(selectedCreateId = null, selectedEditId = null) {
   try {
     debugLog('Caricamento categorie...');
@@ -861,20 +826,16 @@ async function loadCategoriesForSelect(selectedCreateId = null, selectedEditId =
       ph.selected = !selectedId;
       sel.appendChild(ph);
 
-      // Helper: trova i figli diretti di una categoria
       function getChildren(parentId) {
         return CATEGORIES.filter(c => Number(c.parent_id) === Number(parentId));
       }
 
-      // Helper: verifica se una categoria ha figli
       function hasChildren(catId) {
         return CATEGORIES.some(c => Number(c.parent_id) === Number(catId));
       }
 
-      // Raccoglie tutti gli ID inseriti nell'albero per trovare gli orfani
       const insertedIds = new Set();
 
-      // Funzione ricorsiva che aggiunge le opzioni con indentazione ad albero
       function addTreeOptions(parentId, indentPrefix, isParentLast) {
         const children = getChildren(parentId);
         children.forEach((child, index) => {
@@ -882,19 +843,15 @@ async function loadCategoriesForSelect(selectedCreateId = null, selectedEditId =
           const opt = document.createElement("option");
           opt.value = child.id;
 
-          // Costruisci il prefisso visivo
           let label;
           if (!parentId || parentId === 0) {
-            // Categorie root: nessun prefisso
             label = child.name;
           } else {
-            // Sotto-categorie: usa caratteri ad albero
             const connector = isLast ? "└── " : "├── ";
             label = indentPrefix + connector + child.name;
           }
           opt.textContent = label;
 
-          // Disabilita i nodi intermedi che hanno sotto-categorie
           if (hasChildren(child.id)) {
             opt.disabled = true;
             opt.style.fontWeight = "bold";
@@ -904,15 +861,11 @@ async function loadCategoriesForSelect(selectedCreateId = null, selectedEditId =
           sel.appendChild(opt);
           insertedIds.add(Number(child.id));
 
-          // Ricorsione sui figli
           if (hasChildren(child.id)) {
-            // Calcola il prefisso per i livelli successivi
             let nextPrefix;
             if (!parentId || parentId === 0) {
-              // I figli delle root iniziano con spazi semplici
               nextPrefix = "\u00A0\u00A0\u00A0\u00A0";
             } else {
-              // Sotto-livelli: continua la linea verticale o aggiungi spazi vuoti
               nextPrefix = indentPrefix + (isLast ? "\u00A0\u00A0\u00A0\u00A0\u00A0" : "│\u00A0\u00A0\u00A0");
             }
             addTreeOptions(child.id, nextPrefix, isLast);
@@ -920,17 +873,14 @@ async function loadCategoriesForSelect(selectedCreateId = null, selectedEditId =
         });
       }
 
-      // Trova le categorie radice (parent_id è null, undefined, 0 o vuoto)
       const roots = CATEGORIES.filter(c => !c.parent_id);
 
-      // Inserisci ogni radice e il suo sotto-albero
       roots.forEach(root => {
         const opt = document.createElement("option");
         opt.value = root.id;
         opt.textContent = root.name;
         insertedIds.add(Number(root.id));
 
-        // Disabilita se ha figli
         if (hasChildren(root.id)) {
           opt.disabled = true;
           opt.style.fontWeight = "bold";
@@ -939,14 +889,11 @@ async function loadCategoriesForSelect(selectedCreateId = null, selectedEditId =
 
         sel.appendChild(opt);
 
-        // Aggiungi i figli ricorsivamente
         addTreeOptions(root.id, "", false);
       });
 
-      // Gestione orfani (categorie con parent_id che non esiste nell'albero)
       const orphans = CATEGORIES.filter(c => !insertedIds.has(Number(c.id)));
       if (orphans.length > 0) {
-        // Separatore visivo
         const sep = document.createElement("option");
         sep.disabled = true;
         sep.textContent = "────────────";
@@ -971,17 +918,14 @@ async function loadCategoriesForSelect(selectedCreateId = null, selectedEditId =
   }
 }
 
-// ---- Bootstrap ----
 async function bootstrapAdmin() {
   debugLog('=== Avvio admin panel ===');
 
-  // Stato iniziale
   if (loginSection) loginSection.hidden = false;
   if (productsSection) productsSection.hidden = true;
   if (salesSection) salesSection.hidden = true;
 
   try {
-    // Verifica se già loggato
     const res = await fetch("/api/admin/products", { credentials: "include" });
     
     if (!res.ok) {
@@ -991,7 +935,6 @@ async function bootstrapAdmin() {
 
     debugLog('Già loggato, caricamento dati...');
 
-    // Già loggato
     if (loginSection) loginSection.hidden = true;
     if (productsSection) productsSection.hidden = false;
     if (salesSection) salesSection.hidden = false;

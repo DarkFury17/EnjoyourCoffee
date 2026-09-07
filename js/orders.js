@@ -49,7 +49,6 @@ function renderOrders(orders) {
     card.addEventListener("click", async () => {
       try {
         setNotice("");
-        // ✅ CORRETTO: usa orders_get.php per il dettaglio
         const d = await getJson(`/api/orders_get.php?order_id=${o.id}`);
         renderOrderDetail(d.order, d.items);
       } catch (e) {
@@ -84,7 +83,6 @@ async function main() {
     setNotice("");
     renderOrders(data.orders || []);
   } catch (e) {
-    // Non loggato o errore
     setNotice("Devi effettuare l'accesso per vedere i tuoi ordini.");
   }
 }

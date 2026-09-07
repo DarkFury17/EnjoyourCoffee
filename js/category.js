@@ -1,7 +1,3 @@
-// ============================
-// Category Page - Caricamento dinamico prodotti
-// ============================
-
 const categoryName = document.getElementById("categoryName");
 const categoryTitle = document.getElementById("categoryTitle");
 const categoryDescription = document.getElementById("categoryDescription");
@@ -9,10 +5,6 @@ const searchInput = document.getElementById("searchInput");
 const productGrid = document.getElementById("productGrid");
 
 let categoryProducts = [];
-
-// ============================
-// Lightbox (zoom immagine)
-// ============================
 
 function initLightbox() {
   if (document.getElementById('productLightbox')) return;
@@ -84,10 +76,6 @@ function openLightbox(src, alt) {
 
 initLightbox();
 
-// ============================
-// Funzioni di utility
-// ============================
-
 function showNotice(msg) {
   const notice = document.getElementById("productsNotice");
   if (!notice) return;
@@ -102,10 +90,6 @@ function clearNotice() {
   notice.textContent = "";
 }
 
-// ============================
-// Crea card prodotto
-// ============================
-
 function createProductCard(p) {
   const article = document.createElement("article");
   article.className = "card product";
@@ -113,7 +97,6 @@ function createProductCard(p) {
   article.dataset.name = p.name;
   article.dataset.priceCents = p.price_cents;
 
-  // Determina se il prodotto ha doppio prezzo
   const hasVariant = p.price_2 && Number(p.price_2) > 0;
 
   const media = document.createElement("div");
@@ -151,7 +134,6 @@ function createProductCard(p) {
   title.className = "title";
   title.textContent = p.name;
 
-  // Description with "Leggi di più" truncation
   const descWrap = document.createElement("div");
   descWrap.className = "desc-wrap";
 
@@ -609,21 +591,12 @@ function renderTreeProducts(productsList) {
   }
 }
 
-// ============================
-// Ricerca prodotti
-// ============================
-
 searchInput?.addEventListener("input", () => {
   const q = (searchInput.value || "").toLowerCase().trim();
   if (!q) return renderTreeProducts(categoryProducts);
   renderTreeProducts(categoryProducts.filter(p => (p.name || "").toLowerCase().includes(q)));
 });
 
-// ============================
-// Inizializza al caricamento pagina
-// ============================
-
-// Aspetta che app.js sia completamente caricato
 function initCategoryPage() {
   if (typeof window.appReady === 'undefined') {
     setTimeout(initCategoryPage, 100);

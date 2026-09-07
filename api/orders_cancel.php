@@ -10,7 +10,6 @@ if ($method !== 'POST') {
     exit;
 }
 
-// Estrai ID dall'URL
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 preg_match('/\/api\/orders\/([0-9a-fA-F-]+)\/cancel/', $path, $matches);
 $id = $matches[1] ?? null;
@@ -21,7 +20,6 @@ if (!$id) {
     exit;
 }
 
-// Verifica che l'ordine sia effettivamente pending_payment
 $stmt = $conn->prepare("SELECT status FROM orders WHERE id = ?");
 $stmt->bind_param("s", $id);
 $stmt->execute();
@@ -42,12 +40,10 @@ if ($order['status'] !== 'pending_payment') {
 $conn->begin_transaction();
 
 try {
-    // Cancella order_items
     $stmtI = $conn->prepare("DELETE FROM order_items WHERE order_id = ?");
     $stmtI->bind_param("s", $id);
     $stmtI->execute();
 
-    // Cancella l'ordine
     $stmtO = $conn->prepare("DELETE FROM orders WHERE id = ?");
     $stmtO->bind_param("s", $id);
     $stmtO->execute();

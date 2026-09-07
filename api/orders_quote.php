@@ -34,7 +34,7 @@ if (!is_array($items) || count($items) === 0) {
     exit;
 }
 
-// calcolo totale leggendo dal DB
+// Calcolo preventivo carrello e subtotale verificato da database
 $total_cents = 0;
 $lines = [];
 
@@ -56,13 +56,11 @@ foreach ($items as $it) {
     $p = $res->fetch_assoc();
     if (!$p) continue;
     
-    // Determina il prezzo in base alla variante selezionata dal client
     $client_price = isset($it["price_cents"]) ? (int)$it["price_cents"] : null;
     $variant_label = isset($it["variant_label"]) ? (string)$it["variant_label"] : "";
     
-    $price = (int)$p["price_cents"]; // default: prezzo base
+    $price = (int)$p["price_cents"];
     
-    // Se il client ha inviato un prezzo e il prodotto ha doppio prezzo, valida
     if ($client_price !== null && $p["price_2"] !== null && (int)$p["price_2"] > 0) {
         if ($client_price === (int)$p["price_2"]) {
             $price = (int)$p["price_2"];
@@ -74,7 +72,6 @@ foreach ($items as $it) {
     $line_total = $price * $qty;
     $total_cents += $line_total;
 
-    // Aggiungi etichetta variante al nome per chiarezza
     $display_name = $p["name"];
     if ($variant_label !== "") {
         $display_name .= " (" . $variant_label . ")";
@@ -93,13 +90,12 @@ foreach ($items as $it) {
 $payment_method = (string)($data["payment_method"] ?? $data["paymentmethod"] ?? "cod");
 $subtotal_cents = $total_cents;
 
-// ✅ SCONTO 5% SOLO PER IL PRIMO ACQUISTO
+// Pipeline calcolo sconti dinamici (sconto 5% benvenuto primo acquisto)
 $discount_cents = 0;
 $isLoggedIn = isset($_SESSION['user']) && !empty($_SESSION['user']['id']);
 $has_discount = false;
 if ($isLoggedIn) {
     $userId = $_SESSION['user']['id'];
-    // Controlla se ha già effettuato ordini
     $stmtOrders = $conn->prepare("SELECT COUNT(*) as cnt FROM orders WHERE user_id = ?");
     if ($stmtOrders) {
         $stmtOrders->bind_param("s", $userId);
@@ -107,7 +103,6 @@ if ($isLoggedIn) {
         $result = $stmtOrders->get_result();
         $row = $result->fetch_assoc();
         if (!$row || (int)$row['cnt'] === 0) {
-            // Primo acquisto: applica sconto
             $discount_cents = (int)round($subtotal_cents * 0.05);
             $has_discount = true;
         }
@@ -116,7 +111,7 @@ if ($isLoggedIn) {
 }
 
 $delivery_cents = 0;
-$cod_fee_cents = ($payment_method === "cod") ? 500 : 0; // €5,00
+$cod_fee_cents = ($payment_method === "cod") ? 500 : 0;
 $total_all_cents = $subtotal_cents - $discount_cents + $delivery_cents + $cod_fee_cents;
 
 echo json_encode([
@@ -127,7 +122,6 @@ echo json_encode([
         "delivery_cents" => $delivery_cents,
         "cod_fee_cents" => $cod_fee_cents,
         "total_cents" => $total_all_cents,
-        // compat
         "subtotalcents" => $subtotal_cents,
         "discountcents" => $discount_cents,
         "deliverycents" => $delivery_cents,

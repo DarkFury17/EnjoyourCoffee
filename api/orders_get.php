@@ -13,7 +13,6 @@ if ($orderId === '') {
     exit;
 }
 
-// ORDINE
 $stmtO = $conn->prepare("SELECT * FROM orders WHERE id = ?");
 if (!$stmtO) {
     http_response_code(500);
@@ -31,7 +30,6 @@ if (!$order) {
     exit;
 }
 
-// ITEMS
 $stmtI = $conn->prepare("SELECT * FROM order_items WHERE order_id = ?");
 if (!$stmtI) {
     http_response_code(500);

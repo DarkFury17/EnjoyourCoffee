@@ -34,6 +34,7 @@ function require_login() {
   }
 }
 
+// Verifica sessione e autorizzazione RBAC (ruolo seller)
 function require_seller() {
   require_login();
   if (($_SESSION['user']['role'] ?? '') !== 'seller') {

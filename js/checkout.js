@@ -109,7 +109,7 @@ async function postJson(url, payload) {
     const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // per cookie sessione e sconto [web:1874]
+        credentials: "include",
         body: JSON.stringify(payload),
     });
     const data = await res.json().catch(() => ({}));
@@ -138,14 +138,13 @@ checkoutForm?.addEventListener("submit", async (e) => {
     try {
         setCheckoutNotice("");
 
-        // Privacy Policy checkbox validation
         const privacyCheck = document.getElementById("privacyAccept");
         const privacyLabel = document.getElementById("privacyCheckLabel");
         if (privacyCheck && !privacyCheck.checked) {
             setCheckoutNotice("Devi accettare la Privacy Policy per procedere con l'ordine.");
             if (privacyLabel) {
                 privacyLabel.classList.remove("is-error");
-                void privacyLabel.offsetWidth; // force reflow for re-trigger animation
+                void privacyLabel.offsetWidth;
                 privacyLabel.classList.add("is-error");
                 privacyLabel.scrollIntoView({ behavior: "smooth", block: "center" });
                 setTimeout(() => privacyLabel.classList.remove("is-error"), 1200);
@@ -155,10 +154,8 @@ checkoutForm?.addEventListener("submit", async (e) => {
 
         if (!cart.length) throw new Error("Il carrello è vuoto.");
 
-        // 1) quote
         await doQuote();
 
-        // 2) create order
         const payload = buildCheckoutPayload();
         const created = await postJson("/api/orders", payload);
         console.log("created order response:", created);
@@ -168,7 +165,7 @@ checkoutForm?.addEventListener("submit", async (e) => {
 
         setCheckoutNotice(`Ordine creato! ID: ${orderId}`);
 
-        // Se pagamento carta -> apri Stripe
+        // Redirezione a checkout Stripe per pagamenti digitali
         if (payload.payment_method === "card") {
             const r = await fetch(`/api/stripe_create_checkout.php`, {
                 method: "POST",
@@ -184,10 +181,8 @@ checkoutForm?.addEventListener("submit", async (e) => {
             return;
         }
 
-        // Se contrassegno -> vai alla success
         window.location.href = `/success.html?order_id=${encodeURIComponent(orderId)}`;
 
-        // svuota carrello locale
         cart = [];
         saveCart(cart);
 

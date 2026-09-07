@@ -5,6 +5,7 @@ require_once __DIR__ . '/../session.php';
 
 require_seller();
 
+// Validazione MIME, integrità immagine e hashing crittografico del nome file
 function save_uploaded_product_image(): ?string {
     if (!isset($_FILES['image']) || $_FILES['image']['error'] === UPLOAD_ERR_NO_FILE) {
         return null;
@@ -18,7 +19,6 @@ function save_uploaded_product_image(): ?string {
     $tmpPath = $_FILES['image']['tmp_name'];
     $origName = $_FILES['image']['name'];
 
-    // Whitelist rigida estensioni
     $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
     $allowedExts = ['webp', 'jpg', 'jpeg', 'png'];
     if (!in_array($ext, $allowedExts, true)) {
@@ -27,7 +27,6 @@ function save_uploaded_product_image(): ?string {
         exit;
     }
 
-    // Verifica integrità immagine e MIME reale con getimagesize
     $imgInfo = @getimagesize($tmpPath);
     if ($imgInfo === false || empty($imgInfo['mime'])) {
         http_response_code(400);
@@ -42,7 +41,6 @@ function save_uploaded_product_image(): ?string {
         exit;
     }
 
-    // Se l'estensione fileinfo è presente nel server, esegui ulteriore controllo
     if (function_exists('finfo_open')) {
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $realMime = finfo_file($finfo, $tmpPath);
@@ -59,7 +57,6 @@ function save_uploaded_product_image(): ?string {
         mkdir($uploadDir, 0755, true);
     }
 
-    // Ridenominazione sicura con token casuale univoco
     $secureName = bin2hex(random_bytes(16)) . '.' . $ext;
     $targetPath = $uploadDir . $secureName;
 
@@ -74,7 +71,6 @@ function save_uploaded_product_image(): ?string {
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-// GET - Lista prodotti
 if ($method === 'GET') {
     $res = $conn->query("SELECT * FROM products ORDER BY display_order ASC, created_at DESC");
     
@@ -96,14 +92,11 @@ if ($method === 'GET') {
     exit;
 }
 
-// POST - Crea o aggiorna prodotto
 if ($method === 'POST') {
-    // Estrai ID dall'URL se presente (es: /api/admin/products/123)
     $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     preg_match('/\/api\/admin\/products\/([0-9]+)/', $path, $matches);
     $id = $matches[1] ?? null;
     
-    // Aggiorna esistente
     if ($id) {
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
@@ -113,7 +106,6 @@ if ($method === 'POST') {
         $category_id = (int)($_POST['category_id'] ?? 0);
         $display_order = (int)($_POST['display_order'] ?? 0);
         
-        // Campi doppio prezzo / variante formato
         $price_1_label = trim($_POST['price_1_label'] ?? '');
         $price_1_label = $price_1_label === '' ? null : $price_1_label;
         $price_2_raw = trim($_POST['price_2'] ?? '');
@@ -121,10 +113,8 @@ if ($method === 'POST') {
         $price_2_label = trim($_POST['price_2_label'] ?? '');
         $price_2_label = $price_2_label === '' ? null : $price_2_label;
         
-        // Gestione sicura upload immagine
         $image_url = save_uploaded_product_image();
         
-        // Update query
         if ($image_url) {
             $stmt = $conn->prepare("UPDATE products SET name=?, description=?, price_cents=?, stock_qty=?, is_active=?, category_id=?, image_url=?, display_order=?, price_1_label=?, price_2=?, price_2_label=? WHERE id=?");
             $stmt->bind_param("ssiiiisiisii", $name, $description, $price_cents, $stock_qty, $is_active, $category_id, $image_url, $display_order, $price_1_label, $price_2, $price_2_label, $id);
@@ -143,7 +133,6 @@ if ($method === 'POST') {
         exit;
     }
     
-    // Crea nuovo
     $name = trim($_POST['name'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $price_cents = (int)($_POST['price_cents'] ?? 0);
@@ -152,7 +141,6 @@ if ($method === 'POST') {
     $category_id = (int)($_POST['category_id'] ?? 0);
     $display_order = (int)($_POST['display_order'] ?? 0);
     
-    // Campi doppio prezzo / variante formato
     $price_1_label = trim($_POST['price_1_label'] ?? '');
     $price_1_label = $price_1_label === '' ? null : $price_1_label;
     $price_2_raw = trim($_POST['price_2'] ?? '');
@@ -166,7 +154,6 @@ if ($method === 'POST') {
         exit;
     }
     
-    // Gestione sicura upload immagine
     $image_url = save_uploaded_product_image();
     
     $stmt = $conn->prepare("INSERT INTO products (name, description, price_cents, stock_qty, is_active, category_id, image_url, display_order, price_1_label, price_2, price_2_label) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -182,9 +169,7 @@ if ($method === 'POST') {
     exit;
 }
 
-// DELETE - Elimina prodotto
 if ($method === 'DELETE') {
-    // Estrai ID dall'URL
     $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     preg_match('/\/api\/admin\/products\/([0-9]+)/', $path, $matches);
     $id = $matches[1] ?? null;

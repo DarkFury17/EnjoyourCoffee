@@ -35,7 +35,7 @@ if (!is_array($cart) || count($cart) === 0) {
   exit;
 }
 
-// Calcolo totale DAL DB
+// Validazione carrello e calcolo subtotale lato server
 $subtotal_cents = 0;
 $items = [];
 
@@ -57,26 +57,22 @@ foreach ($cart as $it) {
   $p = $res->fetch_assoc();
   if (!$p) continue;
 
-  // Determina il prezzo in base alla variante selezionata dal client
   $client_price = isset($it["price_cents"]) ? (int)$it["price_cents"] : null;
   $variant_label = isset($it["variant_label"]) ? (string)$it["variant_label"] : "";
   
-  $price = (int)$p["price_cents"]; // default: prezzo base
+  $price = (int)$p["price_cents"];
   
-  // Se il client ha inviato un prezzo e il prodotto ha doppio prezzo, valida
   if ($client_price !== null && $p["price_2"] !== null && (int)$p["price_2"] > 0) {
     if ($client_price === (int)$p["price_2"]) {
       $price = (int)$p["price_2"];
     } elseif ($client_price === (int)$p["price_cents"]) {
       $price = (int)$p["price_cents"];
     }
-    // Se non corrisponde a nessuno dei due, usa il prezzo base (protezione da manomissioni)
   }
   
   $line_total = $price * $qty;
   $subtotal_cents += $line_total;
 
-  // Aggiungi etichetta variante al nome prodotto per chiarezza nell'ordine
   $display_name = (string)$p["name"];
   if ($variant_label !== "") {
     $display_name .= " (" . $variant_label . ")";
@@ -96,14 +92,12 @@ if (count($items) === 0) {
   exit;
 }
 
-// Campi extra presenti in orders (li mettiamo per coerenza col tuo schema)
-// ✅ SCONTO 5% SOLO PER IL PRIMO ACQUISTO
+// Pipeline calcolo sconti dinamici (sconto 5% benvenuto primo acquisto)
 $discount_cents = 0;
 $user_id = null;
 $isLoggedIn = isset($_SESSION['user']) && !empty($_SESSION['user']['id']);
 if ($isLoggedIn) {
     $user_id = $_SESSION['user']['id'];
-    // Controlla se ha già effettuato ordini
     $stmtOrders = $conn->prepare("SELECT COUNT(*) as cnt FROM orders WHERE user_id = ?");
     if ($stmtOrders) {
         $stmtOrders->bind_param("s", $user_id);
@@ -111,7 +105,6 @@ if ($isLoggedIn) {
         $result = $stmtOrders->get_result();
         $row = $result->fetch_assoc();
         if (!$row || (int)$row['cnt'] === 0) {
-            // Primo acquisto: applica sconto
             $discount_cents = (int)round($subtotal_cents * 0.05);
         }
         $stmtOrders->close();
@@ -119,12 +112,11 @@ if ($isLoggedIn) {
 }
 
 $delivery_cents = 0;
-$cod_fee_cents  = ($payment_method === "cod") ? 500 : 0; // cambia se vuoi fee per contrassegno
+$cod_fee_cents  = ($payment_method === "cod") ? 500 : 0;
 $total_cents    = $subtotal_cents - $discount_cents + $delivery_cents + $cod_fee_cents;
 
 $status = ($payment_method === "card") ? "pending_payment" : "pending";
 
-// Dati cliente/indirizzo (nel tuo schema sono NOT NULL quasi tutti)
 $customer_name    = (string)($customer["name"] ?? "");
 $customer_surname = (string)($customer["surname"] ?? "");
 $customer_email   = (string)($customer["email"] ?? "");
@@ -135,18 +127,15 @@ $addr_cap     = (string)($address["cap"] ?? "");
 $addr_city    = (string)($address["city"] ?? "");
 $addr_details = (string)($address["details"] ?? "");
 
-// ✅ CONTROLLO CAP: solo BA (70xxx), BAT (76xxx) e CAP extra ammessi
-$cap_validi = ['72015']; // CAP extra ammessi
-$cap_prefissi_validi = ['70', '76']; // Prefissi Bari e BAT
+$cap_validi = ['72015'];
+$cap_prefissi_validi = ['70', '76'];
 
 $cap_ok = false;
 
-// Controlla se è nei CAP extra ammessi
 if (in_array($addr_cap, $cap_validi)) {
     $cap_ok = true;
 }
 
-// Controlla se inizia con 70 o 76
 if (!$cap_ok) {
     foreach ($cap_prefissi_validi as $prefix) {
         if (substr($addr_cap, 0, 2) === $prefix) {
@@ -165,13 +154,12 @@ if (!$cap_ok) {
     exit;
 }
 
-// ID ordine (varchar 36)
 $orderId = uuidv4();
 
+// Transazione atomica inserimento testata ordine e dettagli righe
 $conn->begin_transaction();
 
 try {
-  // INSERT orders con id esplicito
   $stmtO = $conn->prepare("
     INSERT INTO orders
       (id, status,
@@ -197,11 +185,10 @@ try {
     $addr_street, $addr_number, $addr_cap, $addr_city, $addr_details,
     $delivery_notes, $delivery_slot, $payment_method,
     $subtotal_cents, $discount_cents, $delivery_cents, $cod_fee_cents, $total_cents,
-    $user_id  // può essere NULL o string
+    $user_id
 );
   $stmtO->execute();
 
-  // INSERT order_items (order_id è varchar(36)!)
   $stmtI = $conn->prepare("
     INSERT INTO order_items (order_id, product_id, product_name, unit_price_cents, qty)
     VALUES (?, ?, ?, ?, ?)

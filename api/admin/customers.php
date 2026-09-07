@@ -3,12 +3,10 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../session.php';
 require_once __DIR__ . '/../db.php';
 
-// Solo i seller possono vedere i clienti
 require_seller();
 
 $conn->set_charset('utf8mb4');
 
-// Mostra tutti i clienti, non solo quelli con ordini pagati
 $stmt = $conn->prepare("
     SELECT
         customer_email,

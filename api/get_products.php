@@ -4,13 +4,10 @@ require 'db.php';
 
 $conn->set_charset('utf8mb4');
 
-// Ricevi il parametro category (può essere slug o id)
 $category = isset($_GET['category']) ? trim($_GET['category']) : null;
 
 if ($category) {
-    // Verifica se è un numero (ID) o una stringa (slug)
     if (is_numeric($category)) {
-        // Filtra per ID categoria (anche ricorsivamente per figli/nipoti/bisnipoti)
         $stmt = $conn->prepare("
             SELECT p.*, c.parent_id as category_parent_id, p1.parent_id as category_grandparent_id
             FROM products p
@@ -24,7 +21,6 @@ if ($category) {
         $category_id = (int)$category;
         $stmt->bind_param("iiii", $category_id, $category_id, $category_id, $category_id);
     } else {
-        // Filtra per SLUG categoria (ricorsivamente per figli/nipoti/bisnipoti)
         $stmt = $conn->prepare("
             SELECT p.*, c.parent_id as category_parent_id, p1.parent_id as category_grandparent_id
             FROM products p
@@ -41,7 +37,6 @@ if ($category) {
     $stmt->execute();
     $result = $stmt->get_result();
 } else {
-    // Tutti i prodotti attivi
     $result = $conn->query("
         SELECT p.*, c.parent_id as category_parent_id, p1.parent_id as category_grandparent_id
         FROM products p

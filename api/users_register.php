@@ -28,7 +28,6 @@ if ($email === '' || $password === '') {
   exit;
 }
 
-// Verifica se email esiste già
 $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
 $stmt->bind_param("s", $email);
 $stmt->execute();
@@ -45,11 +44,9 @@ function uuidv4() {
   return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
-// Generiamo il codice di verifica a 6 cifre e marchiamo l'utente come NON verificato (is_verified = 0)
 $verification_code = sprintf("%06d", mt_rand(1, 999999));
 $is_verified = 0;
 
-// Crea nuovo utente con role = 'customer'
 $hashed = password_hash($password, PASSWORD_BCRYPT);
 $role = 'customer';
 $user_id = uuidv4();
@@ -68,7 +65,6 @@ if (!$stmt->execute()) {
     exit;
 }
 
-// Invio dell'email con il codice OTP
 $host = $_SERVER['HTTP_HOST'];
 $subject = "Enjoy Your Coffee - Conferma la tua email";
 $message = "Ciao " . ($name ?: 'nuovo utente') . ",\n\nBenvenuto in Enjoy Your Coffee!\nPer completare la tua iscrizione e accedere al tuo account, copia il codice temporaneo qui sotto e inseriscilo nel popup del sito:\n\nTuoc codice di verifica: " . $verification_code . "\n\nA presto,\nIl Team di Enjoy Your Coffee";
@@ -79,5 +75,4 @@ $headers .= "X-Mailer: PHP/" . phpversion();
 
 @mail($email, $subject, $message, $headers);
 
-// Non salviamo più la sessione, comunichiamo che deve fare la verification!
 echo json_encode(["ok" => true, "require_verification" => true, "email" => $email]);

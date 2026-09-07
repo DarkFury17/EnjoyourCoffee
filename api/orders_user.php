@@ -5,7 +5,6 @@ require_once __DIR__ . '/db.php';
 
 $conn->set_charset('utf8mb4');
 
-// Verifica che l'utente sia loggato
 if (!isset($_SESSION['user']) || empty($_SESSION['user']['id'])) {
     http_response_code(401);
     echo json_encode(["ok" => false, "error" => "Devi effettuare l'accesso per vedere i tuoi ordini."]);
@@ -14,7 +13,6 @@ if (!isset($_SESSION['user']) || empty($_SESSION['user']['id'])) {
 
 $user_id = $_SESSION['user']['id'];
 
-// Recupera gli ordini dell'utente
 $stmt = $conn->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC");
 if (!$stmt) {
     http_response_code(500);

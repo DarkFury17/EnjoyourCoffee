@@ -18,7 +18,6 @@ if ($email === '' || $code === '') {
     exit;
 }
 
-// Cerca l'utente con quell'email e codice
 $stmt = $conn->prepare("SELECT id, email, role, name, surname, is_verified FROM users WHERE email = ? AND verification_code = ?");
 if (!$stmt) {
     http_response_code(500);
@@ -44,13 +43,10 @@ if ($user['is_verified'] == 1) {
     exit;
 }
 
-// Approva e sblocca l'account
 $stmtUpd = $conn->prepare("UPDATE users SET is_verified = 1, verification_code = NULL WHERE id = ?");
-// ID is a string (UUID)
 $stmtUpd->bind_param("s", $user['id']);
 $stmtUpd->execute();
 
-// Associa eventuali ordini effettuati come ospite (Guest Checkout) con la stessa email
 $stmtAssoc = $conn->prepare("UPDATE orders SET user_id = ? WHERE customer_email = ? AND user_id IS NULL");
 if ($stmtAssoc) {
     $stmtAssoc->bind_param("ss", $user['id'], $user['email']);
@@ -58,7 +54,6 @@ if ($stmtAssoc) {
     $stmtAssoc->close();
 }
 
-// Login automatico
 $_SESSION['user'] = [
     "id" => $user["id"],
     "email" => $user["email"],

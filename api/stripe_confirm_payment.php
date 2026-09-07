@@ -11,7 +11,7 @@ if (file_exists($configFile)) {
 
 $conn->set_charset('utf8mb4');
 
-// Parametri da success.js
+// Verifica e riconciliazione transazionale stato di pagamento Stripe
 $orderId = (string)($_GET['order_id'] ?? '');
 $sessionId = (string)($_GET['session_id'] ?? '');
 
@@ -30,19 +30,16 @@ if (!defined('STRIPE_SECRET_KEY') || !STRIPE_SECRET_KEY) {
 \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
 
 try {
-    // Recupera la sessione da Stripe
     $session = \Stripe\Checkout\Session::retrieve($sessionId);
 
-    // Sicurezza: verifica che questa sessione appartenga a quell'ordine
     if ((string)$session->client_reference_id !== $orderId) {
         http_response_code(400);
         echo json_encode(["ok" => false, "error" => "Sessione non corrisponde all'ordine"]);
         exit;
     }
 
-    $paymentStatus = (string)$session->payment_status; // 'paid', 'unpaid', ecc.
+    $paymentStatus = (string)$session->payment_status;
     
-    // Aggiorna ordine nel DB
     $newStatus = ($paymentStatus === 'paid') ? 'paid' : 'pending';
     
     $stmt = $conn->prepare("

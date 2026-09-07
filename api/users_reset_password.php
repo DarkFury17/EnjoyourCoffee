@@ -17,7 +17,6 @@ if ($token === '' || $password === '') {
     exit;
 }
 
-// Cerca l'utente con questo token
 $stmt = $conn->prepare("SELECT id, reset_expires FROM users WHERE reset_token = ?");
 $stmt->bind_param("s", $token);
 $stmt->execute();
@@ -31,14 +30,12 @@ if ($res->num_rows === 0) {
 
 $user = $res->fetch_assoc();
 
-// Controlla se il token è scaduto
 if (strtotime($user['reset_expires']) < time()) {
     http_response_code(400);
     echo json_encode(["error" => "Il link di ripristino è scaduto. Richiedine uno nuovo."]);
     exit;
 }
 
-// Tutto ok, aggiorna la password e svuota il token
 $hashed = password_hash($password, PASSWORD_BCRYPT);
 $stmtUpd = $conn->prepare("UPDATE users SET password_hash = ?, reset_token = NULL, reset_expires = NULL WHERE id = ?");
 

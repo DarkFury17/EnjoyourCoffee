@@ -7,14 +7,11 @@ require_seller();
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Estrai ID dall'URL se presente
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 preg_match('/\/api\/admin\/orders\/([0-9a-fA-F-]+)/', $path, $matches);
 $id = $matches[1] ?? null;
 
-// GET - Lista ordini o dettaglio singolo
 if ($method === 'GET') {
-    // Dettaglio ordine
     if ($id) {
         $stmt = $conn->prepare("SELECT * FROM orders WHERE id = ? LIMIT 1");
         $stmt->bind_param("s", $id);
@@ -28,7 +25,6 @@ if ($method === 'GET') {
             exit;
         }
         
-        // Recupera items
         $stmt2 = $conn->prepare("SELECT * FROM order_items WHERE order_id = ?");
         $stmt2->bind_param("s", $id);
         $stmt2->execute();
@@ -43,7 +39,6 @@ if ($method === 'GET') {
         exit;
     }
     
-    // Lista ordini
     $stmt = $conn->prepare("
         SELECT id, status, customer_name, customer_surname, customer_email, customer_phone,
                address_city, address_cap, delivery_slot, payment_method, total_cents, created_at
@@ -61,7 +56,6 @@ if ($method === 'GET') {
     exit;
 }
 
-// PATCH - Aggiorna stato ordine
 if ($method === 'PATCH') {
     if (!$id) {
         http_response_code(400);

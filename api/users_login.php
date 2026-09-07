@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
-require_once __DIR__ . '/session.php';  // ✅ Usa session.php invece di session_start()
+require_once __DIR__ . '/session.php';
 require_once __DIR__ . '/db.php';
 
 $conn->set_charset('utf8mb4');
@@ -17,7 +17,6 @@ if ($email === '' || $password === '') {
     exit;
 }
 
-// CERCA IN USERS
 $stmt = $conn->prepare("SELECT id, email, password_hash, role, name, surname, is_verified FROM users WHERE email = ? LIMIT 1");
 if (!$stmt) {
     http_response_code(500);
@@ -41,11 +40,9 @@ if (!$user || !password_verify($password, $user['password_hash'])) {
     exit;
 }
 
-// Controllo se esiste la colonna is_verified (se è NULL la consideriamo 1 per vecchi DB)
 $is_verif = isset($user['is_verified']) ? (int)$user['is_verified'] : 1;
 
 if ($is_verif === 0) {
-    // Generate new OTP silently in case they lost it
     $newCode = sprintf("%06d", mt_rand(1, 999999));
     $upd = $conn->prepare("UPDATE users SET verification_code = ? WHERE id = ?");
     if ($upd) {
@@ -68,7 +65,6 @@ if ($is_verif === 0) {
     exit;
 }
 
-// Associa eventuali ordini effettuati come ospite (Guest Checkout) con la stessa email
 $stmtAssoc = $conn->prepare("UPDATE orders SET user_id = ? WHERE customer_email = ? AND user_id IS NULL");
 if ($stmtAssoc) {
     $stmtAssoc->bind_param("ss", $user['id'], $user['email']);
@@ -76,7 +72,6 @@ if ($stmtAssoc) {
     $stmtAssoc->close();
 }
 
-// ✅ Salva utente in sessione
 $_SESSION['user'] = [
     "id" => $user["id"],
     "email" => $user["email"],

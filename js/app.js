@@ -1,15 +1,8 @@
-// ============================
-// Config
-// ============================
 const API_BASE = "";
 const STORAGE_CART = "coffee_cart_v1";
-// Nota: l'autenticazione seller/admin è gestita interamente lato server tramite /api/auth/login
 
 let currentUser = null;
 
-// ============================
-// Utils
-// ============================
 const euro = (cents) =>
   new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format((cents || 0) / 100);
 
@@ -38,6 +31,7 @@ function showToast(message) {
   }, 3000);
 }
 
+// Pipeline calcolo sconti dinamici e gestione stato carrello in LocalStorage
 function loadCart() {
   try { return JSON.parse(localStorage.getItem(STORAGE_CART)) ?? []; }
   catch { return []; }
@@ -56,9 +50,6 @@ function cartTotal(cart) {
   return total;
 }
 
-// ============================
-// Drawer (carrello)
-// ============================
 let cart = loadCart();
 
 const drawer = document.getElementById("cartDrawer");
@@ -146,7 +137,6 @@ cartList?.addEventListener("click", (e) => {
   const cartKey = btn.getAttribute("data-cart-key");
   const action = btn.getAttribute("data-action");
 
-  // Confronto flessibile: usa cartKey se presente, altrimenti ID
   const idx = cart.findIndex(x => {
     const key = x.cartKey || String(x.id);
     return key === cartKey || String(key) === String(cartKey);
@@ -181,9 +171,6 @@ window.addEventListener('cartUpdated', () => {
   renderCart();
 });
 
-// ============================
-// User auth (customer)
-// ============================
 const openAuthBtn = document.getElementById("openAuthBtn");
 const userBadge = document.getElementById("userBadge");
 const userAuthDialog = document.getElementById("userAuthDialog");
@@ -227,18 +214,15 @@ function renderUserUi() {
   
   console.log('[app.js] renderUserUi - isLogged:', isLogged, 'currentUser:', currentUser);
 
-  // Bottone header
   if (openAuthBtn) openAuthBtn.textContent = isLogged ? "Account" : "Accedi";
   if (userBadge) userBadge.hidden = true;
   if (myOrdersLink) myOrdersLink.hidden = !isLogged;
 
-  // Gestisci visibilità elementi modal
   const tabsWrap = document.getElementById("authTabsWrap");
   const panesWrap = document.getElementById("authPanesWrap");
   const loggedUserView = document.getElementById("loggedUserView");
   const loggedUserEmail = document.getElementById("loggedUserEmail");
 
-  // Se loggato: nascondi tabs e form, mostra messaggio
   if (tabsWrap) tabsWrap.hidden = isLogged;
   if (panesWrap) panesWrap.hidden = isLogged;
   if (loginPane) loginPane.hidden = isLogged;
@@ -246,7 +230,6 @@ function renderUserUi() {
   if (recoverPane) recoverPane.hidden = true;
   if (verifyPane) verifyPane.hidden = true;
 
-  // Mostra messaggio quando loggato
   if (loggedUserView) {
     loggedUserView.hidden = !isLogged;
     if (isLogged && loggedUserEmail && currentUser?.email) {
@@ -262,10 +245,8 @@ function renderUserUi() {
     }
   }
 
-  // Logout visibile solo se loggato
   if (btnUserLogout) btnUserLogout.hidden = !isLogged;
 
-  // Quando NON loggato, default su login
   if (!isLogged) {
     if (tabLogin) {
       tabLogin.classList.add("active");
@@ -333,12 +314,10 @@ openAuthBtn?.addEventListener("click", async () => {
   userAuthDialog.showModal();
 });
 
-// Chiudi dialog
 closeAuthDialog?.addEventListener("click", () => {
   if (userAuthDialog) userAuthDialog.close();
 });
 
-// Chiudi cliccando fuori
 userAuthDialog?.addEventListener("click", (e) => {
   const dialogDimensions = userAuthDialog.getBoundingClientRect();
   if (
@@ -351,7 +330,6 @@ userAuthDialog?.addEventListener("click", (e) => {
   }
 });
 
-// Tabs
 tabLogin?.addEventListener("click", () => {
   if (currentUser?.id) return;
   if (loginPane) loginPane.hidden = false;
@@ -372,7 +350,6 @@ tabRegister?.addEventListener("click", () => {
   showUserError("");
 });
 
-// Login
 btnUserLogin?.addEventListener("click", async () => {
   try {
     showUserError("");
@@ -380,12 +357,10 @@ btnUserLogin?.addEventListener("click", async () => {
       email: userLoginEmail.value.trim(),
       password: userLoginPassword.value,
     });
-    // Se loggato ri-renderizza UI
     await refreshMe();
     userAuthDialog.close();
   } catch (e) {
     if (e.data && e.data.require_verification) {
-      // mostriamo verifyPane
       if (userVerifyEmail) userVerifyEmail.value = e.data.email || userLoginEmail.value.trim();
       if (loginPane) loginPane.hidden = true;
       if (registerPane) registerPane.hidden = true;
@@ -397,7 +372,6 @@ btnUserLogin?.addEventListener("click", async () => {
   }
 });
 
-// Register
 btnUserRegister?.addEventListener("click", async () => {
   try {
     showUserError("");
@@ -426,7 +400,6 @@ btnUserRegister?.addEventListener("click", async () => {
   }
 });
 
-// Verifica OTP
 btnVerifyCode?.addEventListener("click", async () => {
   try {
     showUserError("");
@@ -436,20 +409,17 @@ btnVerifyCode?.addEventListener("click", async () => {
     
     await apiPost("/api/users_verify_email.php", { email, code });
     await refreshMe();
-    // Ora è loggato, la UI mostrerà automaticamente loggedUserView con il banner speciale
   } catch (e) {
     showUserError(String(e.message || e));
   }
 });
 
 linkResendotp?.addEventListener("click", () => {
-  // Torniamo a login o resettiamo
   if (loginPane) loginPane.hidden = false;
   if (verifyPane) verifyPane.hidden = true;
   showUserError("Re-inserisci le tue credenziali nell'accesso per richiedere un altro codice.");
 });
 
-// Logout
 btnUserLogout?.addEventListener("click", async () => {
   try {
     showUserError("");
@@ -461,14 +431,12 @@ btnUserLogout?.addEventListener("click", async () => {
   }
 });
 
-// Recover Password UI
 linkRecoverPassword?.addEventListener("click", () => {
   if (loginPane) loginPane.hidden = true;
   if (registerPane) registerPane.hidden = true;
   if (recoverPane) recoverPane.hidden = false;
   showUserError("");
   
-  // reset state in case it was used before
   const recoverSuccess = document.getElementById("recoverSuccess");
   const recoverDescription = document.getElementById("recoverDescription");
   if (recoverSuccess) recoverSuccess.hidden = true;
@@ -498,7 +466,6 @@ btnRecoverPassword?.addEventListener("click", async () => {
     if (recoverSuccess) recoverSuccess.hidden = false;
     if (recoverDescription) recoverDescription.hidden = true;
     
-    // Mostriamo solo il pulsante di ritorno nascondendo il form input
     if (userRecoverEmail) userRecoverEmail.closest('.field').hidden = true;
     if (btnRecoverPassword) btnRecoverPassword.hidden = true;
     
@@ -513,7 +480,6 @@ const heroPromoBanner = document.getElementById("heroPromoBanner");
 function renderDiscountBanner() {
   const isLogged = Boolean(currentUser?.id);
 
-  // Hero promo banner (homepage)
   if (heroPromoBanner) {
     if (isLogged) {
       const userName = currentUser?.name || '';
@@ -524,7 +490,6 @@ function renderDiscountBanner() {
     }
   }
 
-  // Discount banner (cart area)
   if (!discountBanner) return;
   const hasDiscount = Boolean(currentUser?.has_discount);
   if (!hasDiscount) {
@@ -536,9 +501,7 @@ function renderDiscountBanner() {
   discountBanner.textContent = "Benvenuto! Hai uno sconto del 5% sul tuo primo acquisto, applicato automaticamente al carrello.";
 }
 
-// On page load
 refreshMe();
 
-// Segnala che app.js è pronto
 window.appReady = true;
 window.euro = euro;

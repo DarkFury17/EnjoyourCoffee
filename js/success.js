@@ -13,7 +13,6 @@
     const sessionId = params.get("session_id") || params.get("sessionId");
 
     if (sessionId) {
-        // aggiorna lo stato ordine in DB leggendo la sessione Stripe
         await fetch(
             `/api/stripe_confirm_payment.php?order_id=${encodeURIComponent(orderId)}&session_id=${encodeURIComponent(sessionId)}`,
             { method: "GET", headers: { "Accept": "application/json" } }
@@ -41,7 +40,7 @@
             return;
         }
 
-        // Svuota carrello in caso di successo 
+        // Reset carrello locale dopo conferma transazione
         localStorage.setItem("coffee_cart_v1", "[]");
         window.dispatchEvent(new Event('cartUpdated'));
 

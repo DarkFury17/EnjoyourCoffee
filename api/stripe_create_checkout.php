@@ -8,7 +8,6 @@ require_once __DIR__ . '/db.php';
 
 $conn->set_charset('utf8mb4');
 
-// Leggi JSON
 $raw = file_get_contents('php://input');
 $data = json_decode($raw, true);
 
@@ -26,7 +25,6 @@ if ($orderId === '') {
     exit;
 }
 
-// Recupera ordine
 $stmtO = $conn->prepare("SELECT id, total_cents, discount_cents FROM orders WHERE id = ?");
 if (!$stmtO) {
     http_response_code(500);
@@ -44,7 +42,6 @@ if (!$order) {
     exit;
 }
 
-// Recupera righe ordine
 $stmtI = $conn->prepare("SELECT product_name, unit_price_cents, qty FROM order_items WHERE order_id = ?");
 if (!$stmtI) {
     http_response_code(500);
@@ -76,7 +73,7 @@ if (count($line_items) === 0) {
     exit;
 }
 
-// ✅ CARICA STRIPE
+// Inizializzazione Stripe Checkout Session transazionale
 require_once __DIR__ . '/../vendor/autoload.php';
 $configFile = __DIR__ . '/../config_private.php';
 if (file_exists($configFile)) {
@@ -91,7 +88,6 @@ if (!defined('STRIPE_SECRET_KEY') || !STRIPE_SECRET_KEY) {
 
 \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
 
-// URL di successo e cancellazione
 $origin = "https://www.enjoyourcoffee.it";
 $successUrl = $origin . "/success.html?order_id=" . urlencode($orderId) . "&session_id={CHECKOUT_SESSION_ID}";
 $cancelUrl = $origin . "/checkout.html?canceled=1&order_id=" . urlencode($orderId);

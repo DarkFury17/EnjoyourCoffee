@@ -21,7 +21,6 @@ if ($email === '') {
     exit;
 }
 
-// Verifica se c'è un utente con questa email
 $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
 $stmt->bind_param("s", $email);
 $stmt->execute();
@@ -30,10 +29,8 @@ $res = $stmt->get_result();
 if ($res->num_rows > 0) {
     $user = $res->fetch_assoc();
     $token = bin2hex(random_bytes(32));
-    // 1 ora
     $expires = date('Y-m-d H:i:s', time() + 3600);
 
-    // Save token
     $stmtUpd = $conn->prepare("UPDATE users SET reset_token = ?, reset_expires = ? WHERE id = ?");
     if (!$stmtUpd) {
         http_response_code(500);
@@ -41,7 +38,6 @@ if ($res->num_rows > 0) {
         exit;
     }
     
-    // NOTA BENE: id è una stringa UUID, per cui usiamo 'sss' e non 'ssi'
     $stmtUpd->bind_param("sss", $token, $expires, $user['id']);
     if (!$stmtUpd->execute()) {
         http_response_code(500);
@@ -49,7 +45,6 @@ if ($res->num_rows > 0) {
         exit;
     }
 
-    // Send email using native mail function
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
     $host = $_SERVER['HTTP_HOST'];
     $resetLink = $protocol . $host . "/reset-password.html?token=" . urlencode($token);
@@ -64,5 +59,4 @@ if ($res->num_rows > 0) {
     @mail($email, $subject, $message, $headers);
 }
 
-// Always respond OK for security reasons (don't reveal if email exists)
 echo json_encode(["ok" => true, "message" => "Processed"]);

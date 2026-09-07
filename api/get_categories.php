@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
 
-require_once __DIR__ . '/db.php'; // oppure ../db.php (vedi sopra)
+require_once __DIR__ . '/db.php';
 
 $conn->set_charset('utf8mb4');
 @$conn->select_db('enjoyour89469');
