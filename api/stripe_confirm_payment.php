@@ -4,7 +4,10 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/session.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../config_private.php';
+$configFile = __DIR__ . '/../config_private.php';
+if (file_exists($configFile)) {
+    require_once $configFile;
+}
 
 $conn->set_charset('utf8mb4');
 

@@ -6,11 +6,25 @@ ini_set('display_errors', DEBUG ? '1' : '0');
 ini_set('display_startup_errors', DEBUG ? '1' : '0');
 ini_set('log_errors', '1');
 
-$host   = 'sql.enjoyourcoffee.it';
-$user   = 'enjoyour89469';
-$pass   = 'enjo50149';
-$dbname = 'enjoyour89469';
-$port   = 3306;
+$configFile = __DIR__ . '/../config_private.php';
+if (file_exists($configFile)) {
+    require_once $configFile;
+}
+
+$host   = defined('DB_HOST') ? DB_HOST : (getenv('DB_HOST') ?: '');
+$user   = defined('DB_USER') ? DB_USER : (getenv('DB_USER') ?: '');
+$pass   = defined('DB_PASS') ? DB_PASS : (getenv('DB_PASS') ?: '');
+$dbname = defined('DB_NAME') ? DB_NAME : (getenv('DB_NAME') ?: '');
+$port   = defined('DB_PORT') ? (int)DB_PORT : (int)(getenv('DB_PORT') ?: 3306);
+
+if (empty($host) || empty($user) || empty($dbname)) {
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(500);
+    die(json_encode([
+        "ok" => false,
+        "error" => "Configurazione database mancante. Crea il file config_private.php partendo da config_private.example.php."
+    ]));
+}
 
 mysqli_report(MYSQLI_REPORT_OFF);
 

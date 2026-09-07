@@ -78,7 +78,10 @@ if (count($line_items) === 0) {
 
 // ✅ CARICA STRIPE
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../config_private.php';
+$configFile = __DIR__ . '/../config_private.php';
+if (file_exists($configFile)) {
+    require_once $configFile;
+}
 
 if (!defined('STRIPE_SECRET_KEY') || !STRIPE_SECRET_KEY) {
     http_response_code(500);

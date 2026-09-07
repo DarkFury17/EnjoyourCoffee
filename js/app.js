@@ -3,8 +3,7 @@
 // ============================
 const API_BASE = "";
 const STORAGE_CART = "coffee_cart_v1";
-const STORAGE_SELLER = "coffee_seller_auth_v1";
-const SELLER_PASSWORD = "1234";
+// Nota: l'autenticazione seller/admin è gestita interamente lato server tramite /api/auth/login
 
 let currentUser = null;
 

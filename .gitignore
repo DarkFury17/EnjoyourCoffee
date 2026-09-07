@@ -1,8 +1,9 @@
-@"
+.vscode/
+config_private.php
+api/config_private.php
 uploads/*
 !uploads/.gitkeep
 !uploads/.htaccess
 .DS_Store
 Thumbs.db
 *.log
-"@ | Out-File -Encoding utf8 .gitignore
