@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Area venditore - Enjoy Your Coffeé</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+  <script defer src="/js/admin.js"></script>
+  <link rel="icon" type="image/jpeg" href="assets/logo.jpg" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="index.html" aria-label="Home">
+        <img class="brand-logo" src="assets/logo.jpg" alt="Enjoy Your Coffeé" />
+        <span class="brand-text">Enjoy Your Coffeé</span>
+      </a>
+
+      <nav class="site-nav" aria-label="Navigazione principale">
+        <a class="nav-link" href="index.html">Home</a>
+        <button class="btn btn-ghost" type="button" id="logoutBtn">Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container page">
+    <section class="catalog" id="loginSection" aria-label="Login venditore">
+      <div class="section-head">
+        <div>
+          <h2 class="h2">Login venditore</h2>
+          <p class="muted small">Accesso necessario per gestire prodotti.</p>
+        </div>
+      </div>
+
+      <div class="card" style="padding:16px;">
+        <form id="loginForm" autocomplete="off">
+          <div class="field">
+            <div class="muted small">Email</div>
+            <input class="input" id="loginEmail" type="email" autocomplete="off" required />
+          </div>
+
+          <div class="field" style="margin-top:12px;">
+            <div class="muted small">Password</div>
+            <input class="input" id="loginPassword" type="password" autocomplete="new-password" required />
+          </div>
+
+          <p class="error" id="loginError" hidden style="margin-top:12px;"></p>
+
+          <div style="display:flex; gap:10px; margin-top:14px;">
+            <button class="btn btn-primary" type="submit">Entra</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="catalog" id="productsSection" hidden aria-label="Gestione prodotti" style="margin-top:24px;">
+      <div class="section-head">
+        <div>
+          <h2 class="h2">Gestione prodotti</h2>
+          <p class="muted small">Aggiungi prodotti (con immagine) e gestisci il catalogo.</p>
+        </div>
+      </div>
+
+      <div class="card" style="padding:16px;">
+        <form id="createProductForm">
+          <div class="field">
+            <div class="muted small">Nome prodotto</div>
+            <input class="input" name="name" id="pName" required />
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="productCategory">Categoria</label>
+            <select id="productCategory" class="field-input select-like" required></select>
+          </div>
+
+          <div class="field" style="margin-top:12px;">
+            <div class="muted small">Descrizione</div>
+            <textarea class="input" name="description" id="pDescription" rows="3"></textarea>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-top:12px;">
+            <div class="field">
+              <div class="muted small">Prezzo (cent)</div>
+              <input class="input" name="price_cents" id="pPrice" type="number" min="0" required />
+            </div>
+
+            <div class="field">
+              <div class="muted small">Stock</div>
+              <input class="input" name="stock_qty" id="pStock" type="number" min="0" value="0" />
+            </div>
+
+            <div class="field">
+              <div class="muted small">Posizione</div>
+              <input class="input" name="display_order" id="pDisplayOrder" type="number" min="0" value="0" />
+            </div>
+          </div>
+
+          <details class="variant-details" style="margin-top:14px; border:1px solid rgba(210,160,111,0.2); border-radius:8px; padding:12px;">
+            <summary class="muted small" style="cursor:pointer; color:var(--accent); font-weight:600;">⚙ Variante formato / Doppio prezzo (opzionale)</summary>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-top:12px;">
+              <div class="field">
+                <div class="muted small">Etichetta 1° prezzo</div>
+                <input class="input" id="pPrice1Label" name="price_1_label" type="text" placeholder="es. 64 pz" />
+              </div>
+              <div class="field">
+                <div class="muted small">2° Prezzo (€)</div>
+                <input class="input" id="pPrice2" name="price_2" type="number" min="0" step="0.01" placeholder="es. 28.00" />
+              </div>
+              <div class="field">
+                <div class="muted small">Etichetta 2° prezzo</div>
+                <input class="input" id="pPrice2Label" name="price_2_label" type="text" placeholder="es. 128 pz" />
+              </div>
+            </div>
+            <p class="muted small" style="margin-top:8px; font-size:11px;">Se il 2° prezzo è vuoto o 0, il prodotto mostrerà solo il prezzo singolo come sempre.</p>
+          </details>
+
+          <div class="field" style="margin-top:12px;">
+            <div class="muted small">Immagine (JPG/PNG/WEBP)</div>
+            <input class="input" name="image" id="pImage" type="file" accept="image/png,image/jpeg,image/webp,.webp" />
+          </div>
+
+          <div class="field" style="margin-top:12px;">
+            <label class="muted small">
+              <input type="checkbox" id="pActive" checked />
+              Prodotto attivo
+            </label>
+          </div>
+
+          <p class="error" id="createError" hidden style="margin-top:12px;"></p>
+          <p class="muted small" id="createOk" hidden style="margin-top:12px;"></p>
+
+          <div style="display:flex; gap:10px; margin-top:14px;">
+            <button class="btn btn-primary" type="submit">Aggiungi prodotto</button>
+            <button class="btn btn-ghost" type="button" id="reloadBtn">Ricarica lista</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card" style="padding:16px; margin-top:14px;">
+        <div class="admin-filter-bar">
+          <label for="filterCategory">Filtra per categoria:</label>
+          <select id="filterCategory" class="input select-like">
+            <option value="">Tutte le categorie</option>
+          </select>
+          
+          <label for="filterSearch">Cerca:</label>
+          <input class="input" id="filterSearch" type="search" placeholder="Nome prodotto..." />
+        </div>
+        
+        <div class="muted small" id="listInfo">Nessun dato caricato.</div>
+        <div style="overflow:auto; margin-top:10px;">
+          <table class="table" id="productsTable" style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr>
+                <th class="muted small" style="text-align:left; padding:10px;">Nome</th>
+                <th class="muted small" style="text-align:left; padding:10px;">Prezzo</th>
+                <th class="muted small" style="text-align:left; padding:10px;">Stock</th>
+                <th class="muted small" style="text-align:left; padding:10px;">Attivo</th>
+                <th class="muted small" style="text-align:left; padding:10px;">Immagine</th>
+                <th class="muted small" style="text-align:left; padding:10px;">Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="productsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    
+  <section id="salesSection" hidden>
+    <h1 class="h1">Ordini</h1>
+    <div class="notice" id="adminNotice" hidden></div>
+    <div class="contacts-card" id="orderDetail" hidden style="margin-top: 14px; margin-bottom: 32px;"></div>
+    <div class="grid" id="ordersGrid"></div>
+
+    <h1 class="h1" style="margin-top:24px;">Clienti</h1>
+    <div class="notice" id="customersNotice" hidden></div>
+    <div class="card" style="padding:16px; overflow:auto;">
+      <table class="table" style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th class="muted small" style="text-align:left; padding:10px;">Cliente</th>
+            <th class="muted small" style="text-align:left; padding:10px;">Email</th>
+            <th class="muted small" style="text-align:left; padding:10px;">Telefono</th>
+            <th class="muted small" style="text-align:left; padding:10px;">Ordini</th>
+            <th class="muted small" style="text-align:left; padding:10px;">Speso</th>
+            <th class="muted small" style="text-align:left; padding:10px;">Ultimo ordine</th>
+          </tr>
+        </thead>
+        <tbody id="customersTbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  </main>
+
+<dialog class="auth-dialog" id="editDialog">
+  <form class="auth-form" id="editForm">
+    <h3 class="h2">Modifica prodotto</h3>
+
+    <input type="hidden" id="editId" />
+
+    <label class="field">
+      <span class="muted small">Nome</span>
+      <input class="input" id="editName" required />
+    </label>
+
+    <label class="field">
+      <span class="muted small">Categoria</span>
+      <select id="editCategory" class="input select-like" required></select>
+    </label>
+
+    <label class="field">
+      <span class="muted small">Descrizione</span>
+      <textarea class="input" id="editDescription" rows="3"></textarea>
+    </label>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px;">
+      <label class="field">
+        <span class="muted small">Prezzo (cent)</span>
+        <input class="input" id="editPrice" type="number" min="0" required />
+      </label>
+
+      <label class="field">
+        <span class="muted small">Stock</span>
+        <input class="input" id="editStock" type="number" min="0" required />
+      </label>
+
+      <label class="field">
+        <span class="muted small">Posizione</span>
+        <input class="input" id="editDisplayOrder" type="number" min="0" value="0" required />
+      </label>
+    </div>
+
+    <details class="variant-details" style="margin-top:14px; border:1px solid rgba(210,160,111,0.2); border-radius:8px; padding:12px;">
+      <summary class="muted small" style="cursor:pointer; color:var(--accent); font-weight:600;">⚙ Variante formato / Doppio prezzo (opzionale)</summary>
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-top:12px;">
+        <label class="field">
+          <span class="muted small">Etichetta 1° prezzo</span>
+          <input class="input" id="editPrice1Label" name="price_1_label" type="text" placeholder="es. 64 pz" />
+        </label>
+        <label class="field">
+          <span class="muted small">2° Prezzo (€)</span>
+          <input class="input" id="editPrice2" name="price_2" type="number" min="0" step="0.01" placeholder="es. 28.00" />
+        </label>
+        <label class="field">
+          <span class="muted small">Etichetta 2° prezzo</span>
+          <input class="input" id="editPrice2Label" name="price_2_label" type="text" placeholder="es. 128 pz" />
+        </label>
+      </div>
+      <p class="muted small" style="margin-top:8px; font-size:11px;">Se il 2° prezzo è vuoto o 0, il prodotto mostrerà solo il prezzo singolo come sempre.</p>
+    </details>
+
+    <label class="field">
+      <span class="muted small">Immagine (JPG/PNG/WEBP) — lascia vuoto per non cambiarla</span>
+      <input class="input" id="editImage" type="file" accept="image/png,image/jpeg,image/webp,.webp" />
+    </label>
+
+    <label class="muted small" style="display:flex; gap:8px; align-items:center;">
+      <input type="checkbox" id="editActive" />
+      Prodotto attivo
+    </label>
+
+    <p class="error" id="editError" hidden></p>
+
+    <div class="auth-actions">
+      <button class="btn btn-ghost" type="button" onclick="document.getElementById('editDialog').close()">Annulla</button>
+      <button class="btn btn-primary" id="editSaveBtn" value="ok">Salva</button>
+    </div>
+  </form>
+</dialog>
+</body>
+</html>

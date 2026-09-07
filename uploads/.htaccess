@@ -1,0 +1,25 @@
+# Disabilita esecuzione CGI e directory listing
+Options -ExecCGI -Indexes
+
+# Disabilita mod_php solo se il modulo è effettivamente caricato
+# (evita errore 500 su server con PHP-FPM / FastCGI dove php_flag non è riconosciuto)
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+# Blocca l'accesso a script ed eseguibili (compatibile nativamente con Apache 2.4 e fallback 2.2)
+<FilesMatch "\.(php|phtml|php3|php4|php5|phps|pl|py|cgi|sh|html|htm|js|asp|aspx|jsp)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Deny,Allow
+        Deny from all
+    </IfModule>
+</FilesMatch>

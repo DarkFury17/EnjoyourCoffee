@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="it">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Checkout · Enjoy Your Coffee</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <script defer src="js/checkout.js"></script>
+  <link rel="icon" type="image/jpeg" href="assets/logo.jpg" />
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container header-row">
+            <a class="brand" href="index.html" aria-label="Home">
+                <img class="brand-logo" src="assets/logo.jpg" alt="Enjoy Your Coffee" />
+                <span class="brand-text">ENJOY YOUR COFFEE</span>
+            </a>
+
+            <nav class="site-nav" aria-label="Navigazione principale">
+                <a class="btn btn-ghost" href="index.html">← Continua lo shopping</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container page">
+        <section class="hero" aria-label="Checkout">
+            <div class="hero-card">
+                <div class="hero-kicker">Ordine</div>
+                <h1 class="h1">Checkout</h1>
+                <p class="muted">Controlla il carrello e inserisci i dati di consegna.</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <div id="checkoutNotice" class="banner" hidden></div>
+
+            <div class="checkout-grid">
+                <!-- Riepilogo -->
+                <div class="card">
+                    <h2 class="h2">Riepilogo carrello</h2>
+                    <div id="cartSummary" class="muted"></div>
+
+                    <div id="checkoutTotals" class="muted" hidden></div>
+
+                    <div class="checkout-actions">
+                        <button class="btn btn-ghost" id="btnRecalc" type="button">Ricalcola totale</button>
+                        <a class="btn btn-ghost" href="index.html">Modifica carrello</a>
+                    </div>
+
+                </div>
+
+                <!-- Form -->
+                <form id="checkoutForm" class="card">
+                    <h2 class="h2">Dati per consegna</h2>
+
+                    <div class="grid checkout-form-grid">
+
+                        <input class="input" id="cName" placeholder="Nome" required />
+                        <input class="input" id="cSurname" placeholder="Cognome" required />
+                        <input class="input" id="cEmail" type="email" placeholder="Email" required />
+                        <input class="input" id="cPhone" placeholder="Telefono" required />
+
+                        <input class="input span-2" id="aStreet" placeholder="Via" required />
+                        <input class="input" id="aNumber" placeholder="Civico" required />
+                        <input class="input" id="aCap" placeholder="CAP" required />
+                        <input class="input" id="aCity" placeholder="Città" required />
+                        <input class="input" id="aDetails" placeholder="Scala / Interno (opzionale)" />
+
+                        <select class="input" id="deliverySlot" required>
+                            <option value="">Seleziona fascia oraria</option>
+                            <option value="mattina">Mattina (9:00 - 13:00)</option>
+                            <option value="pomeriggio">Pomeriggio (14:00 - 17:00)</option>
+                        </select>
+
+                        <select class="input" id="paymentMethod" required>
+                            <option value="">Metodo di pagamento</option>
+                            <option value="card">Carta</option>
+                            <option value="cod">Contrassegno</option>
+                        </select>
+
+                        <textarea class="input span-2" id="deliveryNotes"
+                            placeholder="Note consegna (opzionale)"></textarea>
+
+                        <label class="privacy-check" id="privacyCheckLabel">
+                            <input type="checkbox" id="privacyAccept" required />
+                            <span>Ho letto e accetto la <a href="/privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a></span>
+                        </label>
+
+                        <div class="checkout-actions">
+                            <button class="btn btn-ghost" id="btnQuote" type="button">Calcola totale</button>
+                            <button class="btn btn-primary" type="submit">Conferma ordine</button>
+                        </div>
+
+                </form>
+            </div>
+        </section>
+    </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-col">
+        <div class="footer-title">Enjoy Your Coffee</div>
+        <div class="muted small">© 2026 Enjoy Your Coffee</div>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-title">Link</div>
+        <a class="footer-link muted small" href="index.html">Home</a>
+        <a class="footer-link muted small" href="index.html#contatti">Contatti</a>
+        <a class="footer-link muted small" href="/privacy-policy.html">Privacy Policy</a>
+      </div>
+
+      <div class="footer-col">
+        <div class="footer-title">Contatti</div>
+        <a class="footer-link muted small" href="https://wa.me/393203132960" target="_blank" rel="noopener">WhatsApp: 320 31 32 960</a>
+        <a class="footer-link muted small" href="https://wa.me/393280022617" target="_blank" rel="noopener">WhatsApp: 328 0022617</a>
+        <a class="footer-link muted small" href="mailto:enjoycaffe2022@gmail.com">Email: enjoycaffe2022@gmail.com</a>
+        <a class="footer-link muted small" href="https://www.instagram.com/enjoyourcoffee_official/" target="_blank" rel="noopener">Instagram: @enjoyourcoffee_official</a>
+      </div>
+    </div>
+  </footer>
+
+<!-- Cookie Consent Banner -->
+<div class="cookie-banner" id="cookieBanner" hidden>
+  <p>
+    🍪 Questo sito utilizza cookie tecnici per la gestione del carrello e della sessione utente.
+    Non utilizziamo cookie di profilazione. Per maggiori informazioni consulta la nostra
+    <a href="/privacy-policy.html">Privacy Policy</a>.
+  </p>
+  <button class="btn btn-primary" type="button" id="acceptCookies">Accetta</button>
+</div>
+
+<script>
+  (function() {
+    var banner = document.getElementById('cookieBanner');
+    var btn    = document.getElementById('acceptCookies');
+    if (!banner || !btn) return;
+    if (localStorage.getItem('cookie_consent') === '1') return;
+    banner.hidden = false;
+    btn.addEventListener('click', function() {
+      localStorage.setItem('cookie_consent', '1');
+      banner.hidden = true;
+    });
+  })();
+</script>
+<!-- WhatsApp Floating Button -->
+<div class="whatsapp-float" id="whatsappFloat">
+  <a class="whatsapp-float__link" href="https://wa.me/393280022617" target="_blank" rel="noopener" aria-label="Contattaci su WhatsApp">
+    <span class="whatsapp-float__tooltip">Hai bisogno di aiuto?</span>
+    <svg class="whatsapp-float__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+  </a>
+</div>
+
+</body>
+
+</html>

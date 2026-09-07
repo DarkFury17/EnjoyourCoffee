@@ -1,0 +1,43 @@
+RewriteEngine On
+RewriteBase /api/
+
+# Se è un file reale, servilo
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# --- HEALTH ---
+RewriteRule ^ping$ ping.php [L]
+
+# --- PUBLIC ---
+RewriteRule ^categories$ get_categories.php [L]
+RewriteRule ^products$ get_products.php [L,QSA]
+
+# --- SELLER AUTH (admin) ---
+RewriteRule ^auth/login$ login.php [L]
+RewriteRule ^auth/logout$ logout.php [L]
+
+# --- ADMIN ---
+RewriteRule ^admin/products$ admin/products.php [L]
+RewriteRule ^admin/orders$ admin/orders.php [L]
+RewriteRule ^admin/orders/([0-9a-fA-F-]+)$ admin/orders.php [L]
+RewriteRule ^admin/orders/([0-9a-fA-F-]+)/status$ admin/orders.php [L]
+RewriteRule ^admin/products/([0-9]+)$ admin/products.php [L]
+RewriteRule ^admin/customers$ admin/customers.php [L]
+
+# --- CHECKOUT / ORDERS ---
+RewriteRule ^orders/quote$ orders_quote.php [L]
+RewriteRule ^orders$ orders_create.php [L]
+RewriteRule ^orders/([0-9a-fA-F-]+)/cancel$ orders_cancel.php [L]
+
+# --- STRIPE ---
+RewriteRule ^payments/stripe/create-checkout-session$ stripe_create_checkout.php [L]
+RewriteRule ^webhooks/stripe$ stripe_webhook.php [L]
+
+# --- CUSTOMER AUTH ---
+RewriteRule ^users/login$ users_login.php [L]
+RewriteRule ^users/logout$ users_logout.php [L]
+RewriteRule ^users/me$ users_me.php [L]
+RewriteRule ^users/register$ users_register.php [L]
+RewriteRule ^myorders$ myorders.php [L]
+RewriteRule ^myorders/([0-9a-fA-F-]+)$ myorders_detail.php [L]
+RewriteRule ^orders/public/([0-9a-fA-F-]+)$ orders_public.php?id=$1 [L,QSA]
