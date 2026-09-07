@@ -1,4 +1,4 @@
-# ☕ EnjoyYourCoffee - Custom E-Commerce Platform
+# ☕ EnjoyYourCoffee
 
 Piattaforma e-commerce full-stack snella e reattiva sviluppata per la vendita e distribuzione di caffè, macchine espresso e accessori. Il progetto è stato concepito senza l'ausilio di framework monolitici (come WordPress/WooCommerce o Laravel), privilegiando un'architettura **Vanilla JavaScript + PHP Modulare + MySQL** per azzerare l'overhead di caricamento e garantire il controllo granulare su sicurezza, routing e ciclo di vita delle richieste.
 
