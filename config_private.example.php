@@ -17,3 +17,7 @@ define('DB_PORT', 3306);
 
 // Configurazione Stripe (usa sk_test_... per test e sk_live_... in produzione)
 define('STRIPE_SECRET_KEY', 'sk_test_placeholder_key_here');
+
+// Configurazione Dominio e Mittente Email
+define('APP_DOMAIN', 'enjoyourcoffee.it');
+define('MAIL_FROM', 'noreply@enjoyourcoffee.it');

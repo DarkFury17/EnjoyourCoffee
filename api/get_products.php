@@ -48,12 +48,11 @@ if ($category) {
 }
 
 if ($result === false) {
+    error_log("get_products query error: [" . $conn->errno . "] " . $conn->error);
     http_response_code(500);
     echo json_encode([
         "ok" => false,
-        "error" => "Query fallita",
-        "errno" => $conn->errno,
-        "message" => $conn->error
+        "error" => "Errore interno del server. Riprova più tardi."
     ]);
     exit;
 }

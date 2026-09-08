@@ -20,7 +20,14 @@ if (!$id) {
     exit;
 }
 
-$stmt = $conn->prepare("SELECT status FROM orders WHERE id = ?");
+$stmt = $conn->prepare("SELECT status, user_id FROM orders WHERE id = ?");
+if (!$stmt) {
+    error_log("orders_cancel prepare select error: " . $conn->error);
+    http_response_code(500);
+    echo json_encode(["error" => "Errore interno del server. Riprova più tardi."]);
+    exit;
+}
+
 $stmt->bind_param("s", $id);
 $stmt->execute();
 $order = $stmt->get_result()->fetch_assoc();
@@ -31,27 +38,38 @@ if (!$order) {
     exit;
 }
 
+$sessionUserId = $_SESSION['user']['id'] ?? null;
+$sessionRole = $_SESSION['user']['role'] ?? null;
+
+$isSeller = ($sessionRole === 'seller');
+$isOwner = ($sessionUserId !== null && !empty($order['user_id']) && (string)$order['user_id'] === (string)$sessionUserId);
+
+if (!$isSeller && !$isOwner) {
+    http_response_code(403);
+    echo json_encode(["error" => "Non autorizzato ad annullare questo ordine"]);
+    exit;
+}
+
 if ($order['status'] !== 'pending_payment') {
     http_response_code(400);
     echo json_encode(["error" => "L'ordine non puo essere annullato perche ha gia superato la fase di pagamento (status: " . $order['status'] . ")."]);
     exit;
 }
 
-$conn->begin_transaction();
-
-try {
-    $stmtI = $conn->prepare("DELETE FROM order_items WHERE order_id = ?");
-    $stmtI->bind_param("s", $id);
-    $stmtI->execute();
-
-    $stmtO = $conn->prepare("DELETE FROM orders WHERE id = ?");
-    $stmtO->bind_param("s", $id);
-    $stmtO->execute();
-
-    $conn->commit();
-    echo json_encode(["ok" => true, "message" => "Ordine annullato con successo."]);
-} catch (Exception $e) {
-    $conn->rollback();
+$stmtUpd = $conn->prepare("UPDATE orders SET status = 'canceled' WHERE id = ?");
+if (!$stmtUpd) {
+    error_log("orders_cancel prepare update error: " . $conn->error);
     http_response_code(500);
-    echo json_encode(["error" => "Errore cancellazione ordine: " . $e->getMessage()]);
+    echo json_encode(["error" => "Errore interno del server. Riprova più tardi."]);
+    exit;
 }
+
+$stmtUpd->bind_param("s", $id);
+if (!$stmtUpd->execute()) {
+    error_log("orders_cancel execute update error: " . $stmtUpd->error);
+    http_response_code(500);
+    echo json_encode(["error" => "Errore durante l'annullamento dell'ordine."]);
+    exit;
+}
+
+echo json_encode(["ok" => true, "message" => "Ordine annullato con successo."]);

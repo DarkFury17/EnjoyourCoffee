@@ -2,8 +2,8 @@
 define('DEBUG', false);
 
 error_reporting(E_ALL);
-ini_set('display_errors', DEBUG ? '1' : '0');
-ini_set('display_startup_errors', DEBUG ? '1' : '0');
+ini_set('display_errors', '0');
+ini_set('display_startup_errors', '0');
 ini_set('log_errors', '1');
 
 $configFile = __DIR__ . '/../config_private.php';
@@ -18,11 +18,12 @@ $dbname = defined('DB_NAME') ? DB_NAME : (getenv('DB_NAME') ?: '');
 $port   = defined('DB_PORT') ? (int)DB_PORT : (int)(getenv('DB_PORT') ?: 3306);
 
 if (empty($host) || empty($user) || empty($dbname)) {
+    error_log("DB Config error: host, user o dbname non configurati");
     header('Content-Type: application/json; charset=utf-8');
     http_response_code(500);
     die(json_encode([
         "ok" => false,
-        "error" => "Configurazione database mancante. Crea il file config_private.php partendo da config_private.example.php."
+        "error" => "Errore interno del server. Riprova più tardi."
     ]));
 }
 
@@ -31,11 +32,12 @@ mysqli_report(MYSQLI_REPORT_OFF);
 $conn = @new mysqli($host, $user, $pass, $dbname, $port);
 
 if ($conn->connect_error) {
-  header('Content-Type: application/json');
+  error_log("DB Connection error: [" . $conn->connect_errno . "] " . $conn->connect_error);
+  header('Content-Type: application/json; charset=utf-8');
+  http_response_code(500);
   die(json_encode([
-    "error" => "Connessione fallita",
-    "errno" => $conn->connect_errno,
-    "message" => $conn->connect_error
+    "ok" => false,
+    "error" => "Errore interno del server. Riprova più tardi."
   ]));
 }
 

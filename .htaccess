@@ -1,0 +1,29 @@
+# Disabilitazione directory listing
+Options -Indexes
+
+# Blocco file nascosti e cartelle di configurazione
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Protezione file sensibili, credenziali e configurazioni
+<FilesMatch "(?i)\.(example|json|lock|sql|log|sh|bak|env)$|^config_private\.php$">
+    Require all denied
+</FilesMatch>
+
+# Gestione routing mod_rewrite
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Serve direttamente file e directory esistenti
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+</IfModule>
+
+# Security Headers essenziali
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+</IfModule>

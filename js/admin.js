@@ -1,5 +1,15 @@
 const API_BASE = "";
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 const qs = (id) => document.getElementById(id);
 const euro = (cents) =>
   new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format((cents || 0) / 100);
@@ -609,10 +619,10 @@ async function loadOrders() {
       card.style.cursor = "pointer";
 
       card.innerHTML = `
-        <div class="muted small">${new Date(o.created_at).toLocaleString("it-IT")} · ${paymentLabel(o.payment_method)}</div>
-        <div style="margin-top:6px;"><b>${o.customer_name} ${o.customer_surname}</b></div>
-        <div class="muted small">${o.customer_email} · ${o.customer_phone}</div>
-        <div class="muted small">${o.address_city} (${o.address_cap}) · Slot: ${o.delivery_slot}</div>
+        <div class="muted small">${escapeHtml(new Date(o.created_at).toLocaleString("it-IT"))} · ${escapeHtml(paymentLabel(o.payment_method))}</div>
+        <div style="margin-top:6px;"><b>${escapeHtml(o.customer_name)} ${escapeHtml(o.customer_surname)}</b></div>
+        <div class="muted small">${escapeHtml(o.customer_email)} · ${escapeHtml(o.customer_phone)}</div>
+        <div class="muted small">${escapeHtml(o.address_city)} (${escapeHtml(o.address_cap)}) · Slot: ${escapeHtml(o.delivery_slot)}</div>
         <div style="margin-top:8px;"><b>Totale:</b> ${euro(o.total_cents)}</div>
       `;
 
@@ -650,12 +660,13 @@ async function loadOrderDetail(id) {
       <div class="contacts-head">
         <div>
           <h2 class="h2">Dettaglio ordine</h2>
-          <div class="muted small">ID: ${o.id}</div>
+          <div class="muted small">ID: ${escapeHtml(o.id)}</div>
         </div>
       </div>
-      <div class="muted small">${o.customer_name} ${o.customer_surname} · ${o.customer_email} · ${o.customer_phone}</div>
-      <div class="muted small">${o.address_street} ${o.address_number}, ${o.address_cap} ${o.address_city}</div>
-      <div class="muted small">Slot: ${o.delivery_slot} · Pagamento: ${paymentLabel(o.payment_method)}</div>
+      <div class="muted small">${escapeHtml(o.customer_name)} ${escapeHtml(o.customer_surname)} · ${escapeHtml(o.customer_email)} · ${escapeHtml(o.customer_phone)}</div>
+      <div class="muted small">${escapeHtml(o.address_street)} ${escapeHtml(o.address_number)}, ${escapeHtml(o.address_cap)} ${escapeHtml(o.address_city)}</div>
+      <div class="muted small">Slot: ${escapeHtml(o.delivery_slot)} · Pagamento: ${escapeHtml(paymentLabel(o.payment_method))}</div>
+      ${o.delivery_notes ? `<div class="muted small" style="margin-top:4px;"><b>Note consegna:</b> ${escapeHtml(o.delivery_notes)}</div>` : ''}
 
       <div style="margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
         <label class="muted small">Stato:</label>
@@ -675,7 +686,7 @@ async function loadOrderDetail(id) {
         .map(
           (it) => `
             <div class="row">
-              <span>${it.product_name} × ${it.qty}</span>
+              <span>${escapeHtml(it.product_name)} × ${escapeHtml(it.qty)}</span>
               <span>${euro(it.unit_price_cents * it.qty)}</span>
             </div>
           `

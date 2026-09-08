@@ -75,8 +75,9 @@ if ($method === 'GET') {
     $res = $conn->query("SELECT * FROM products ORDER BY display_order ASC, created_at DESC");
     
     if ($res === false) {
+        error_log("admin/products GET query error: " . $conn->error);
         http_response_code(500);
-        echo json_encode(["error" => "Query fallita", "message" => $conn->error]);
+        echo json_encode(["error" => "Errore interno del server. Riprova più tardi."]);
         exit;
     }
     
@@ -117,15 +118,28 @@ if ($method === 'POST') {
         
         if ($image_url) {
             $stmt = $conn->prepare("UPDATE products SET name=?, description=?, price_cents=?, stock_qty=?, is_active=?, category_id=?, image_url=?, display_order=?, price_1_label=?, price_2=?, price_2_label=? WHERE id=?");
+            if (!$stmt) {
+                error_log("admin/products UPDATE prepare error: " . $conn->error);
+                http_response_code(500);
+                echo json_encode(["error" => "Errore interno del server. Riprova più tardi."]);
+                exit;
+            }
             $stmt->bind_param("ssiiiisiisii", $name, $description, $price_cents, $stock_qty, $is_active, $category_id, $image_url, $display_order, $price_1_label, $price_2, $price_2_label, $id);
         } else {
             $stmt = $conn->prepare("UPDATE products SET name=?, description=?, price_cents=?, stock_qty=?, is_active=?, category_id=?, display_order=?, price_1_label=?, price_2=?, price_2_label=? WHERE id=?");
+            if (!$stmt) {
+                error_log("admin/products UPDATE prepare error: " . $conn->error);
+                http_response_code(500);
+                echo json_encode(["error" => "Errore interno del server. Riprova più tardi."]);
+                exit;
+            }
             $stmt->bind_param("ssiiiiisisi", $name, $description, $price_cents, $stock_qty, $is_active, $category_id, $display_order, $price_1_label, $price_2, $price_2_label, $id);
         }
         
         if (!$stmt->execute()) {
+            error_log("admin/products UPDATE execute error: " . $stmt->error);
             http_response_code(500);
-            echo json_encode(["error" => "Aggiornamento fallito", "message" => $stmt->error]);
+            echo json_encode(["error" => "Errore durante l'aggiornamento del prodotto."]);
             exit;
         }
         
@@ -157,11 +171,18 @@ if ($method === 'POST') {
     $image_url = save_uploaded_product_image();
     
     $stmt = $conn->prepare("INSERT INTO products (name, description, price_cents, stock_qty, is_active, category_id, image_url, display_order, price_1_label, price_2, price_2_label) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    if (!$stmt) {
+        error_log("admin/products INSERT prepare error: " . $conn->error);
+        http_response_code(500);
+        echo json_encode(["error" => "Errore interno del server. Riprova più tardi."]);
+        exit;
+    }
     $stmt->bind_param("ssiiiisisis", $name, $description, $price_cents, $stock_qty, $is_active, $category_id, $image_url, $display_order, $price_1_label, $price_2, $price_2_label);
     
     if (!$stmt->execute()) {
+        error_log("admin/products INSERT execute error: " . $stmt->error);
         http_response_code(500);
-        echo json_encode(["error" => "Creazione fallita", "message" => $stmt->error]);
+        echo json_encode(["error" => "Errore durante la creazione del prodotto."]);
         exit;
     }
     
@@ -181,11 +202,18 @@ if ($method === 'DELETE') {
     }
     
     $stmt = $conn->prepare("DELETE FROM products WHERE id = ?");
+    if (!$stmt) {
+        error_log("admin/products DELETE prepare error: " . $conn->error);
+        http_response_code(500);
+        echo json_encode(["error" => "Errore interno del server. Riprova più tardi."]);
+        exit;
+    }
     $stmt->bind_param("i", $id);
     
     if (!$stmt->execute()) {
+        error_log("admin/products DELETE execute error: " . $stmt->error);
         http_response_code(500);
-        echo json_encode(["error" => "Eliminazione fallita", "message" => $stmt->error]);
+        echo json_encode(["error" => "Errore durante l'eliminazione del prodotto."]);
         exit;
     }
     

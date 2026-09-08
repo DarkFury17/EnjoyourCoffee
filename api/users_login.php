@@ -72,6 +72,8 @@ if ($stmtAssoc) {
     $stmtAssoc->close();
 }
 
+session_regenerate_id(true);
+
 $_SESSION['user'] = [
     "id" => $user["id"],
     "email" => $user["email"],

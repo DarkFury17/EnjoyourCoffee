@@ -23,3 +23,12 @@ Options -ExecCGI -Indexes
         Deny from all
     </IfModule>
 </FilesMatch>
+
+# Servizio trasparente versione WebP per tutte le richieste a immagini convertite
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} (?i)\.(jpe?g|png)$
+    RewriteCond %{DOCUMENT_ROOT}/uploads/$1.webp -f [OR]
+    RewriteCond %{REQUEST_FILENAME}\.webp -f
+    RewriteRule ^(.+)\.(?:jpe?g|png)$ /uploads/$1.webp [T=image/webp,L]
+</IfModule>

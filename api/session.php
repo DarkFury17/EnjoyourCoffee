@@ -11,10 +11,15 @@ ini_set('session.use_strict_mode', 1);
 
 session_name('EYCSESSID');
 
+$isHttps = (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off')
+    || (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443)
+    || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https')
+    || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower($_SERVER['HTTP_X_FORWARDED_SSL']) === 'on');
+
 session_set_cookie_params([
   'lifetime' => 0,
   'path' => '/',
-  'secure' => false,   
+  'secure' => $isHttps,   
   'httponly' => true,
   'samesite' => 'Lax',
 ]);
